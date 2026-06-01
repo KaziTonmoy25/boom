@@ -1,0 +1,6 @@
+{
+  "name": "StudyNova AI",
+  "description": "An AI-powered premium study assistant for SAT, IELTS, university admissions, and general academic learning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
