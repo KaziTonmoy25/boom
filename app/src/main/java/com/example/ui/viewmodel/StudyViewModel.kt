@@ -257,6 +257,15 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun clearGeneratedSummary() {
+        _generatedSummary.value = null
+        _isGeneratingNotes.value = false
+    }
+
+    fun selectStudyNote(note: StudyNote) {
+        _generatedSummary.value = note
+    }
+
     fun deleteNote(noteId: Int) {
         viewModelScope.launch {
             repository.deleteStudyNote(noteId)

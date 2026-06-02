@@ -758,6 +758,12 @@ fun NotesScreen(
     var activeCardIdx by remember { mutableStateOf(0) }
     var isCardFlipped by remember { mutableStateOf(false) }
 
+    // Reset flashcard navigation indices when switching summarized portfolios
+    LaunchedEffect(generatedSummary) {
+        activeCardIdx = 0
+        isCardFlipped = false
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -856,8 +862,8 @@ fun NotesScreen(
                                     .clickable {
                                         // Trigger detail direct binding
                                         viewModel.addSchedule("Review Summary: ${note.title}", "Recall summarized bullet outlines", "StudyNova Portal")
-                                        // Simulate loading generatedSummary bind
-                                        viewModel.generateStudyCompanion(note.title, note.originalText)
+                                        // Bind the selected study note directly without regeneration
+                                        viewModel.selectStudyNote(note)
                                     }
                             ) {
                                 Row(
@@ -962,13 +968,14 @@ fun NotesScreen(
                         if (cards.isEmpty()) {
                             Text("No cards parsed.", color = TextSecondary)
                         } else {
-                            val activeCard = cards[activeCardIdx]
+                            val safeCardIdx = if (activeCardIdx in cards.indices) activeCardIdx else 0
+                            val activeCard = cards[safeCardIdx]
                             Column(
                                 modifier = Modifier.weight(1f).fillMaxWidth(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text("Card ${activeCardIdx + 1} of ${cards.size}", fontSize = 12.sp, color = TextSecondary)
+                                Text("Card ${safeCardIdx + 1} of ${cards.size}", fontSize = 12.sp, color = TextSecondary)
 
                                 // Dynamic animated Card Flip box
                                 Box(
@@ -1012,12 +1019,12 @@ fun NotesScreen(
                                 ) {
                                     Button(
                                         onClick = {
-                                            if (activeCardIdx > 0) {
-                                                activeCardIdx--
+                                            if (safeCardIdx > 0) {
+                                                activeCardIdx = safeCardIdx - 1
                                                 isCardFlipped = false
                                             }
                                         },
-                                        enabled = activeCardIdx > 0,
+                                        enabled = safeCardIdx > 0,
                                         colors = ButtonDefaults.buttonColors(containerColor = CosmicSurfaceVariant),
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
@@ -1026,12 +1033,12 @@ fun NotesScreen(
 
                                     Button(
                                         onClick = {
-                                            if (activeCardIdx + 1 < cards.size) {
-                                                activeCardIdx++
+                                            if (safeCardIdx + 1 < cards.size) {
+                                                activeCardIdx = safeCardIdx + 1
                                                 isCardFlipped = false
                                             }
                                         },
-                                        enabled = activeCardIdx + 1 < cards.size,
+                                        enabled = safeCardIdx + 1 < cards.size,
                                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
@@ -1103,7 +1110,7 @@ fun NotesScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = {
-                        viewModel.generateStudyCompanion("", "") // Clean buffer bypass
+                        viewModel.clearGeneratedSummary()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = CosmicSurfaceVariant),
                     border = BorderStroke(1.dp, CosmicBorder),
